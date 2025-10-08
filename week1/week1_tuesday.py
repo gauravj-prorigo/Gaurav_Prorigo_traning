@@ -34,4 +34,4 @@ else:
     exit()
 
 
-print(f"\n✅ Result: {num1} {operator} {num2} = {result}")
+print(f"\nResult: {num1} {operator} {num2} = {result}")
