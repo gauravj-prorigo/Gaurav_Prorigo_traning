@@ -7,7 +7,7 @@ num2 = int(input("Enter the second number: "))
 print("\nChoose an operation:")
 print("1. Addition (+)")
 print("2. Subtraction (-)")
-print("3. Multiplication (*)")
+print("3. Multiplication (**)")
 print("4. Division (/)\n")
 
 
@@ -34,4 +34,4 @@ else:
     exit()
 
 
-print(f"\n✅ Result: {num1} {operator} {num2} = {result}")
+print(f"\nResult: {num1} {operator} {num2} = {result}")
