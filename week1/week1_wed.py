@@ -8,13 +8,18 @@ def is_prime(n):
     return True    
 
 
-num = (input("Enter the numbers separted by ',': " ))
+num = (input("Enter the numbers separted by , : " ))
 num = num.split(",")
 
 print(num)
 result = ""
 for n in num:
-    n = int(n.strip())
+    n = n.strip()
+    if not n.isdigit():
+        print("invliad input");
+        exit()
+    
+        n = int(n)
     if is_prime(n):
         result += str(n) + ", "
          
