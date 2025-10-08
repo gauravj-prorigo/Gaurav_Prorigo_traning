@@ -1,8 +1,8 @@
 
-print("📌 Welcome to the Basic Arithmetic Calculator")
+print(" Welcome to the Basic Arithmetic Calculator")
 
-num1 = float(input("Enter the first number: "))
-num2 = float(input("Enter the second number: "))
+num1 = int(input("Enter the first number: "))
+num2 = int(input("Enter the second number: "))
 
 print("\nChoose an operation:")
 print("1. Addition (+)")
@@ -25,12 +25,12 @@ elif choice in ('3', '*'):
     operator = '*'
 elif choice in ('4', '/'):
     if num2 == 0:
-        print("⚠️ Error: Cannot divide by zero.")
+        print(" Error: Cannot divide by zero.")
         exit()
     result = num1 / num2
     operator = '/'
 else:
-    print("❌ Invalid operation selected.")
+    print(" Invalid operation selected.")
     exit()
 
 
