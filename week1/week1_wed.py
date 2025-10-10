@@ -19,7 +19,7 @@ for n in num:
         print("invliad input");
         exit()
     
-        n = int(n)
+    n = int(n)
     if is_prime(n):
         result += str(n) + ", "
          
