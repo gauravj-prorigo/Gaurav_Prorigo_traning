@@ -8,6 +8,6 @@ for i in exp:
         break
     
 if safe:
-    result = eval(exp)
+    result = eval(exp, {"__builtins__": None}, {})
     print("The result is : ",result)    
         
