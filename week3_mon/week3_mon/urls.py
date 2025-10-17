@@ -19,5 +19,7 @@ from django.urls import path
 from home.views import *
 urlpatterns = [
     path('' , homepage,name = "home"),
+    path('blogs/', blog_list, name='blog_list'),
+    path('blogs/new/', create_blog, name='create_blog'),
     path('admin/', admin.site.urls),
 ]
