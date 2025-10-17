@@ -13,6 +13,7 @@ class WeatherApi:
             "lat": self.lat,
             "lon": self.lon,
             "appid": self.api_key,
+            "units": "metric"
         }
         try:
             response = requests.get(self.base_url, params=params)
@@ -23,7 +24,7 @@ class WeatherApi:
             temp = data["main"]["temp"]
             desc = data["weather"][0]["description"]
             # print(data)
-            
+
             print(f"The weather in {city} is {desc} with a temperature of {temp}°C.")
 
         except Exception as e:
