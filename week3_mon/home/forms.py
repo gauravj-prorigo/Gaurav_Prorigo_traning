@@ -4,8 +4,8 @@ from .models import Blog
 class BlogForm(forms.ModelForm):
     class Meta:
         model = Blog
-        fields = ['title', 'content']  # Only allow title & content from the user
-
+        fields = ['title', 'content']
+        
     def clean_title(self):
         title = self.cleaned_data.get('title')
         if len(title) < 5:

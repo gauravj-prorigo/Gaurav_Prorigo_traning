@@ -18,8 +18,10 @@ from django.contrib import admin
 from django.urls import path
 from home.views import *
 urlpatterns = [
-    path('' , homepage,name = "home"),
+    path('' , homepage,name = 'home'),
     path('blogs/', blog_list, name='blog_list'),
     path('blogs/new/', create_blog, name='create_blog'),
+    path('edit/<int:id>/', edit_blog, name='edit_blog'),   
+    path('delete/<int:id>/', delete_blog, name='delete_blog'), 
     path('admin/', admin.site.urls),
 ]
