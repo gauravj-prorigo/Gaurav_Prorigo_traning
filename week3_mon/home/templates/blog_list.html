@@ -3,6 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blog Posts</title>
     <style>
         body {
@@ -76,11 +77,48 @@
         .delete-link:hover {
             background-color: #a71d2a;
         }
+
+        .create-btn {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 25px;
+        }
+
+        .create-btn:hover {
+            background-color: #218838;
+        }
+
+        @media (max-width: 600px) {
+            .create-btn {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 28px;
+                text-align: center;
+                padding: 0;
+                margin: 0;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>All Blog Posts</h1>
+
+        <!-- Create button (desktop shows inline, mobile becomes floating) -->
+        <a href="{% url 'create_blog' %}" class="create-btn">+</a>
 
         {% for blog in blogs %}
             <div class="blog-post">
