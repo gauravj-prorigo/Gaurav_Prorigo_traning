@@ -17,11 +17,22 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from home.views import *
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from home.views import BlogViewSet
+
+
+router = DefaultRouter()
+router.register('blogs',BlogViewSet)
 urlpatterns = [
     path('' , homepage,name = 'home'),
     path('blogs/', blog_list, name='blog_list'),
     path('blogs/new/', create_blog, name='create_blog'),
     path('edit/<int:id>/', edit_blog, name='edit_blog'),   
     path('delete/<int:id>/', delete_blog, name='delete_blog'), 
+    path('viewcourse/',index),
+    path('add&viewperson/',person_api),
+    # path('add&viewblog/',Blog_api),
+    path('api/',include(router.urls)),
     path('admin/', admin.site.urls),
 ]

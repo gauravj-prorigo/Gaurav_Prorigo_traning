@@ -1,8 +1,13 @@
 from django.shortcuts import render,redirect
 from django.http import HttpResponse
-from .models import Blog
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Blog,person
 from .forms import BlogForm
+from .serializers import *
 from django.shortcuts import get_object_or_404
+from rest_framework import viewsets
 
 # Create your views here.
 
@@ -50,4 +55,81 @@ def delete_blog(request, id):
         blog.delete() 
         return redirect('blog_list')
     return render(request, 'delete_blog.html', {'blog': blog})
-  
+
+
+
+@api_view(['GET'])
+def index(request):
+    courses = {
+        'course_name' : 'python',
+        'learn' : ['flask','Django','FastApi'],
+        'course_provider' : 'Scalaer'
+    }
+    return Response(courses)
+
+@api_view(['GET','POST','PUT','PATCH','DELETE'])
+def person_api(request):
+    if request.method == 'GET':
+        objs = person.objects.all()
+        serializers = peopleserilazers(objs,many = True)
+        return Response(serializers.data)
+    
+    
+    elif request.method == 'POST':
+         data = request.data
+         serializers = peopleserilazers(data = data)
+         if serializers.is_valid():
+             serializers.save()
+             return Response(serializers.data)
+         
+         return Response(serializers.errors) 
+     
+     
+    elif request.method == 'PUT':
+         data = request.data
+         obj = person.objects.get(id = data['id'])
+         serializers = peopleserilazers(obj,data = data)
+         if serializers.is_valid():
+             serializers.save()
+             return Response(serializers.data)
+         
+         return Response(serializers.errors) 
+     
+     
+    elif request.method == 'PATCH':
+         data = request.data
+         obj = person.objects.get(id = data['id'])
+         serializers = peopleserilazers(obj ,data = data , partial = True)
+         if serializers.is_valid():
+             serializers.save()
+             return Response(serializers.data)
+         
+         return Response(serializers.errors) 
+     
+    else:
+         data = request.data 
+         obj = person.objects.get(id = data['id'])
+         obj.delete()
+         return Response({'Meassage': 'Person is deleted'})
+    
+    
+@api_view(['GET','POST'])
+def Blog_api(request):
+    if request.method == 'GET':
+        obj = Blog.objects.all()
+        serializers = blogserilazers(obj,many = True)
+        return Response(serializers.data)
+    
+    else:
+        data = request.data
+        serializers = blogserilazers(data = data)
+        if serializers.is_valid():
+            serializers.save()
+            return Response(serializers.data)
+        
+        return Response(serializers.errors)       
+    
+    
+class BlogViewSet(viewsets.ModelViewSet):
+    queryset = Blog.objects.all()
+    serializer_class = blogserilazers
