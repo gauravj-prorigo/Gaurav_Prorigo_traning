@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import AbstractUser
 # class Students(models.Model):
 #     name = models.CharField(max_length=100)
 #     age = models.IntegerField()
@@ -23,3 +23,16 @@ class Blog(models.Model):
 class person(models.Model):
     name = models.CharField(max_length=100)
     age = models.IntegerField()
+    
+    
+    
+class loginuser(AbstractUser):
+    ROLE_CHOICES = (
+        ('admin', 'Admin'),
+        ('employee', 'Employee'),
+        ('user', 'User'),
+    )
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
+
+    def __str__(self):
+        return f"{self.username} ({self.role})"    
