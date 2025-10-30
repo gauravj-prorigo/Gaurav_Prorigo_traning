@@ -12,6 +12,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from .serializers import RegisterSerializer, LoginSerialize
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from .permissions import IsAuthenticatedUser, IsEmployee, IsAdmin
 
 # Create your views here.
 
@@ -29,6 +30,7 @@ def blog_list(request):
 
 
 def create_blog(request):
+    
     if request.method == "POST":
         form = BlogForm(request.POST)
         if form.is_valid():
@@ -117,31 +119,42 @@ def person_api(request):
          return Response({'Meassage': 'Person is deleted'})
     
     
-@api_view(['GET','POST'])
-def Blog_api(request):
-    if request.method == 'GET':
-        obj = Blog.objects.all()
-        serializers = blogserilazers(obj,many = True)
-        return Response(serializers.data)
+# @api_view(['GET','POST'])
+# def Blog_api(request):
+#     if request.method == 'GET':
+#         obj = Blog.objects.all()
+#         serializers = blogserilazers(obj,many = True)
+#         return Response(serializers.data)
     
-    else:
-        data = request.data
-        serializers = blogserilazers(data = data)
-        if serializers.is_valid():
-            serializers.save()
-            return Response(serializers.data)
+#     else:
+#         data = request.data
+#         serializers = blogserilazers(data = data)
+#         if serializers.is_valid():
+#             serializers.save()
+#             return Response(serializers.data)
         
-        return Response(serializers.errors)       
+#         return Response(serializers.errors)       
     
     
 class BlogViewSet(viewsets.ModelViewSet):
     queryset = Blog.objects.all()
     serializer_class = blogserilazers
+    permission_classes = [IsAuthenticated]
     
+    
+    # def get_permissions(self):
+    #         if self.action in ['list', 'retrieve']:  
+    #          return [AllowAny()]
+    #         return [IsAuthenticated()]  
     def get_permissions(self):
-            if self.action in ['list', 'retrieve']:  # Public actions
-             return [AllowAny()]
-            return [IsAuthenticated()]  # Protected actions
+        if self.action in ['list', 'retrieve']:
+            return [IsAuthenticatedUser()]
+        elif self.action == 'create':
+            return [IsEmployee()]
+        elif self.action == 'destroy':
+            return [IsAdmin()]
+        else:
+            return [IsAuthenticated()]
     
     
     

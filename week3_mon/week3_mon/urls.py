@@ -34,7 +34,7 @@ urlpatterns = [
     path('add&viewperson/',person_api),
     # path('add&viewblog/',Blog_api),
     path('api/',include(router.urls)),
-     path('register/', RegisterView.as_view(), name='register'),
+    path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
     path('admin/', admin.site.urls),
 ]
