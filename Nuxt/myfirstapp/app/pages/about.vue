@@ -1,9 +1,9 @@
 <template>
   <div class="page">
-    <h1>Home Page</h1>
-    <p>Welcome to the simple Nuxt app home page!</p>
+    <h1>About Page</h1>
+    <p>This is a basic about page created with Nuxt.</p>
 
-    <NuxtLink to="/about" class="link">Go to About Page →</NuxtLink>
+    <NuxtLink to="/" class="link">← Back to Home</NuxtLink>
   </div>
 </template>
 
@@ -15,7 +15,7 @@
 }
 
 h1 {
-  color: #2c3e50;
+  color: #27ae60;
   margin-bottom: 10px;
 }
 
@@ -27,7 +27,7 @@ p {
 .link {
   display: inline-block;
   padding: 10px 20px;
-  background-color: #3498db;
+  background-color: #27ae60;
   color: white;
   text-decoration: none;
   border-radius: 6px;
@@ -35,6 +35,6 @@ p {
 }
 
 .link:hover {
-  background-color: #2980b9;
+  background-color: #1e8449;
 }
 </style>
