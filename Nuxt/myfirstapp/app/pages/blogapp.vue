@@ -5,11 +5,16 @@
     <h1>Blog Posts</h1>
 
     <div v-if="error" class="error">
-      <p>Error loading posts: {{ error.message }}</p>
+      <p>Failed to load posts. Please try again later.</p>
+      <p class="error-details">{{ error.message }}</p>
     </div>
 
-    <div v-else-if="!posts || !posts.length" class="loading">
+    <div v-else-if="pending" class="loading">
       <p>Loading posts...</p>
+    </div>
+
+    <div v-else-if="!posts || !posts.length" class="no-posts">
+      <p>No blog posts available yet.</p>
     </div>
 
     <div v-else class="posts">
@@ -21,15 +26,10 @@
   </div>
 </template>
 
-<script setup lang="ts">
-interface Post {
-  id: number 
-  title: string
-  content: string
-}
+<script setup>
+const apiUrl = 'http://127.0.0.1:8000/api/blogs/'
 
-const apiUrl = 'http://127.0.0.1:8000/add&viewblog/'
-const { data: posts, error } = await useFetch<Post[]>(apiUrl)
+const { data: posts, error, pending } = await useFetch(apiUrl)
 </script>
 
 <style scoped>
@@ -74,12 +74,10 @@ h1 {
   padding: 20px;
   border-radius: 10px;
   background-color: #f9f9f9;
-  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .post-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
 }
 
 .post-card h2 {
@@ -93,9 +91,20 @@ h1 {
 }
 
 .loading,
-.error {
+.error,
+.no-posts {
   text-align: center;
   font-size: 1.2rem;
   color: #555;
+  padding: 30px;
+}
+
+.error p {
+  color: #e74c3c;
+}
+
+.error-details {
+  font-size: 0.9rem;
+  color: #888;
 }
 </style>

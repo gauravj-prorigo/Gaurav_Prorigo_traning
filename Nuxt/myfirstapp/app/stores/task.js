@@ -36,19 +36,15 @@ export const useTaskStore = defineStore('tasks', {
       window.alert(`${count} task(s) deleted`)
     },
     saveTodos() {
-      // ✅ Browser-only (Nuxt SSR-safe)
-      if (import.meta.client) {
-        localStorage.setItem('todos', JSON.stringify(this.todos))
-      }
+      localStorage.setItem("todos", JSON.stringify(this.todos));
     },
+
     loadTodos() {
-      if (import.meta.client) {
-        const saved = localStorage.getItem('todos')
-        if (saved) {
-          this.todos = JSON.parse(saved)
-        }
-      }
+    const saved = localStorage.getItem("todos");
+    if (saved) {
+      this.todos = JSON.parse(saved);
     }
+  }
   }
 })
 
