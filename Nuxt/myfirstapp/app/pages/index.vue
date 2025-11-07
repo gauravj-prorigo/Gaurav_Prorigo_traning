@@ -46,12 +46,10 @@ p {
   text-decoration: none;
   font-weight: 500;
   border-radius: 8px;
-  transition: all 0.3s ease;
+
 }
 
 .link:hover {
   background-color: #2980b9;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 </style>

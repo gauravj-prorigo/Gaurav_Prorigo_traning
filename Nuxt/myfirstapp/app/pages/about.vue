@@ -31,7 +31,7 @@ p {
   color: white;
   text-decoration: none;
   border-radius: 6px;
-  transition: background 0.3s ease;
+
 }
 
 .link:hover {

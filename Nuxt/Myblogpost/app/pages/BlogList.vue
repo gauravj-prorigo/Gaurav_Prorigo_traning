@@ -9,11 +9,8 @@
             <div class="spinner"></div>
             <p>Loading blogs...</p>
         </div>
-
-        <!-- Error -->
         <div v-if="store.error" class="error">{{ store.error }}</div>
 
-        <!-- Blog List -->
         <div v-else class="blog-list">
             <div v-for="blog in store.blog" :key="blog.id" class="blog-card">
                 <h2>{{ blog.title }}</h2>
@@ -42,6 +39,12 @@
 <script setup>
 import { Icon } from '@iconify/vue'
 import { UseBlogstore } from '#imports'
+import auth from '~/middleware/auth';
+definePageMeta({
+    middleware: [auth],
+    layout: 'authenticated'
+})
+
 const store = UseBlogstore()
 store.fetchBlogs()
 
@@ -126,23 +129,23 @@ const confirmDelete = async (id) => {
 
 .edit-btn,
 .delete-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px; 
-  padding: 6px 12px;
-  border-radius: 4px;
-  text-decoration: none;
-  color: white;
-  cursor: pointer;
-  border: none; 
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    color: white;
+    cursor: pointer;
+    border: none;
 }
 
 .edit-btn {
-  background-color: #3498db;
+    background-color: #3498db;
 }
 
 .delete-btn {
-  background-color: #e74c3c;
+    background-color: #e74c3c;
 }
 
 .delete-btn {

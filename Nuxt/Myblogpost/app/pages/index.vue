@@ -1,87 +1,250 @@
 <template>
-  <div class="home-page">
-    <section class="hero">
-      <div class="overlay">
-        <h1>Welcome to My Blog</h1>
-        <p>Read, write, and share your thoughts. Stay updated with the latest ideas!</p>
-        <NuxtLink to="/BlogList" class="btn-primary">View Blogs</NuxtLink>
-      </div>
-    </section>
+  <!-- :key forces remount when route changes (helps SPA redirect -> fresh layout) -->
+  <div class="auth-page" :key="route.fullPath">
+    <div class="auth-card" role="region" aria-labelledby="login-title">
+      <h1 id="login-title">Login</h1>
 
-    <section class="intro">
-      <h2>Discover Stories, Ideas & Insights</h2>
-      <p>Our blog covers various topics and provides a platform to express yourself freely.</p>
-    </section>
+      <p v-if="infoMessage" class="info">{{ infoMessage }}</p>
+
+      <form @submit.prevent="onSubmit" class="form" novalidate>
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input
+            id="username"
+            v-model="form.username"
+            autocomplete="username"
+            required
+            :class="{ invalid: fieldErrors.username }"
+            @blur="validateField('username')"
+          />
+          <p v-if="fieldErrors.username" class="field-error">{{ fieldErrors.username }}</p>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            v-model="form.password"
+            autocomplete="current-password"
+            required
+            minlength="6"
+            :class="{ invalid: fieldErrors.password }"
+            @blur="validateField('password')"
+          />
+          <p v-if="fieldErrors.password" class="field-error">{{ fieldErrors.password }}</p>
+        </div>
+
+        <button type="submit" :disabled="loading" class="btn-primary" aria-busy="loading">
+          {{ loading ? 'Logging in...' : 'Login' }}
+        </button>
+
+        <p class="server-error" v-if="error">{{ error }}</p>
+      </form>
+
+      <p class="switch-text">
+        Don’t have an account?
+        <NuxtLink to="/register">Register</NuxtLink>
+      </p>
+    </div>
   </div>
 </template>
 
 <script setup>
+import { reactive, ref, computed } from 'vue'
+import { useRouter, useRoute } from '#imports'
+import { useAuthStore } from '#imports'
+
+const auth = useAuthStore()
+// restore store on client (safe)
+if (process.client && typeof auth.initFromStorage === 'function') {
+  auth.initFromStorage()
+}
+
+const router = useRouter()
+const route = useRoute()
+
+const form = reactive({ username: '', password: '' })
+const loading = ref(false)
+const error = ref(null)
+
+const fieldErrors = reactive({
+  username: null,
+  password: null
+})
+
+// show message if redirected by middleware (e.g. ?next=/Homepage&reason=auth_required)
+const reason = computed(() => route.query.reason)
+const infoMessage = computed(() => {
+  if (reason.value === 'auth_required') return 'Please log in to continue.'
+  return ''
+})
+
+function validateField(field) {
+  fieldErrors[field] = null
+  if (field === 'username' && (!form.username || form.username.trim().length < 3)) {
+    fieldErrors.username = 'Enter your username (min 3 chars).'
+  }
+  if (field === 'password' && (!form.password || form.password.length < 6)) {
+    fieldErrors.password = 'Password must be at least 6 characters.'
+  }
+}
+
+async function onSubmit() {
+  // basic client-side validation
+  validateField('username')
+  validateField('password')
+  if (fieldErrors.username || fieldErrors.password) {
+    error.value = 'Please fix the highlighted fields.'
+    return
+  }
+
+  loading.value = true
+  error.value = null
+
+  try {
+    await auth.login({ username: form.username, password: form.password })
+
+    // redirect to originally requested page if provided, otherwise Homepage
+    const next = route.query.next ? decodeURIComponent(String(route.query.next)) : '/Homepage'
+    router.push(next)
+  } catch (err) {
+    // flexible error handling depending on how your store throws
+    error.value = err?.message || err?.data?.message || 'Login failed'
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <style scoped>
-.home-page {
-  font-family: "Segoe UI", Roboto, sans-serif;
-  color: #fff;
-}
-
-.hero {
- background: url(../../assets/photo-1507525428034-b723cf961d3e.avif) center/cover no-repeat;
-  height: 80vh;
+/* Page wrapper */
+.auth-page {
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
+  background: #f6f8fb;
+  padding: 24px;
+  box-sizing: border-box;
 }
 
-.hero .overlay {
+/* Card */
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 22px;
+  box-sizing: border-box;
+  border: 1px solid #e6eef8;
+  box-shadow: 0 6px 18px rgba(20, 40, 80, 0.04);
+}
+
+/* Title */
+h1 {
+  margin: 0 0 10px;
+  font-size: 1.25rem;
+  color: #102a43;
   text-align: center;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 40px;
-  border-radius: 10px;
 }
 
-.hero h1 {
-  font-size: 3rem;
-  margin-bottom: 20px;
-  color: #ffd700;
-}
-
-.hero p {
-  font-size: 1.2rem;
-  margin-bottom: 20px;
-}
-
-.btn-primary {
-  background-color: #3498db;
-  color: white;
-  padding: 12px 25px;
+/* Info message shown when redirected */
+.info {
+  margin: 0 0 12px;
+  text-align: center;
+  color: #276749; /* greenish */
+  background: #ecfdf5;
+  padding: 8px 12px;
   border-radius: 6px;
-  text-decoration: none;
-  font-weight: bold;
-  transition: all 0.3s;
+  font-size: 0.95rem;
 }
 
-.btn-primary:hover {
-  background-color: #2980b9;
-  transform: translateY(-3px);
+/* Form */
+.form { display: grid; gap: 12px; }
+
+/* Form group */
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+
+label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #243b53;
 }
 
-.intro {
+/* Inputs */
+input {
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid #dbe9fb;
+  background: #fbfdff;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color .12s ease, box-shadow .12s ease;
+}
+
+input:focus {
+  border-color: #2b6cb0;
+  box-shadow: 0 6px 14px rgba(43,108,176,0.06);
+}
+
+/* Invalid input */
+.invalid {
+  border-color: #e53e3e !important;
+}
+
+/* Field error */
+.field-error {
+  color: #e53e3e;
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+/* Primary button */
+.btn-primary {
+  margin-top: 4px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 700;
+  background: linear-gradient(90deg, #2b6cb0, #1f4ea6);
+  color: white;
+  cursor: pointer;
+  transition: transform .12s ease, opacity .12s ease;
+}
+
+.btn-primary[disabled] {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.server-error {
+  margin-top: 8px;
+  color: #972a2a;
   text-align: center;
-  background: #f4f4f4;
-  color: #333;
-  padding: 50px 20px;
+  font-weight: 600;
 }
 
-.intro h2 {
-  font-size: 2rem;
-  margin-bottom: 15px;
+/* Footer text */
+.switch-text {
+  margin-top: 12px;
+  text-align: center;
+  color: #334e68;
+  font-size: 0.95rem;
 }
 
-.intro p {
-  font-size: 1.1rem;
-  max-width: 700px;
-  margin: auto;
-  line-height: 1.6;
+.switch-text a {
+  color: #1f6feb;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+/* Small screens */
+@media (max-width: 420px) {
+  .auth-card { padding: 16px; border-radius: 6px; }
+  input { padding: 9px 10px; }
+  .btn-primary { padding: 10px; border-radius: 6px; }
 }
 </style>
