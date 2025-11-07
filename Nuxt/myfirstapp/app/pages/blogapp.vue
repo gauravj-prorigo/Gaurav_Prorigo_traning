@@ -49,12 +49,10 @@ const { data: posts, error, pending } = await useFetch(apiUrl)
   color: white;
   text-decoration: none;
   border-radius: 6px;
-  transition: all 0.2s ease;
 }
 
 .return-btn:hover {
   background-color: #2980b9;
-  transform: translateY(-2px);
 }
 
 h1 {

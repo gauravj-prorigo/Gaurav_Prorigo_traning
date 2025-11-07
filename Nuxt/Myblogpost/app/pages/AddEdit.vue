@@ -2,7 +2,8 @@
     <div class="form-page">
         <div class="form-container">
             <h1 class="form-heading">
-                <Icon :icon="isEdit ? 'line-md:edit-twotone' : 'line-md:file-document'" width="28" height="28" class="icon" />
+                <Icon :icon="isEdit ? 'line-md:edit-twotone' : 'line-md:file-document'" width="28" height="28"
+                    class="icon" />
                 {{ isEdit ? ' Edit Blog' : ' Add New Blog' }}
             </h1>
 
@@ -33,6 +34,12 @@
 <script setup>
 import { UseBlogstore } from '#imports'
 import { Icon } from '@iconify/vue'
+import auth from '~/middleware/auth';
+definePageMeta({
+    middleware: [auth],
+    layout: 'authenticated'
+})
+
 const store = UseBlogstore()
 const route = useRoute()
 const router = useRouter()
@@ -56,7 +63,7 @@ async function handleSubmit() {
         await store.AddBlogs(form)
         alert('Blog added successfully!')
     }
-    router.push('/blogapp')
+    router.push('/BlogList')
 }
 </script>
 
