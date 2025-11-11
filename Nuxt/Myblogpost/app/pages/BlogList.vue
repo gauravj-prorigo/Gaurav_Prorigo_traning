@@ -2,7 +2,8 @@
     <div class="blog-page">
         <header class="page-header">
             <h1>Blog Management</h1>
-            <NuxtLink to="/AddEdit" class="add-btn">+ Add New Blog</NuxtLink>
+            <NuxtLink  to="/AddEdit" class="add-btn">
+                + Add New Blog</NuxtLink>
         </header>
 
         <div v-if="store.loading" class="loading">
@@ -22,7 +23,7 @@
                         <span>Edit</span>
                     </NuxtLink>
 
-                    <button @click="confirmDelete(blog.id)" class="delete-btn">
+                    <button   @click="confirmDelete(blog.id)" class="delete-btn">
                         <Icon icon="material-symbols:delete-forever-outline" width="20" height="20" />
                         <span>Delete</span>
                     </button>
@@ -54,6 +55,12 @@ const confirmDelete = async (id) => {
         alert('Blog deleted successfully!')
     }
 }
+
+const isAdminOrEmployee = computed(() => {
+  const role = auth.user?.role || ''
+  console.log("isadmin ", role)
+  return role === 'admin' || role === 'employee'
+})
 </script>
 
 <style scoped>

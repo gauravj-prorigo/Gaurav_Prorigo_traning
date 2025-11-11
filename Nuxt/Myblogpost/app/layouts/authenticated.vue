@@ -11,6 +11,7 @@
 <script setup>
 import HeaderBar from '../pages/HeaderBar.vue'
 import FooterBar from '~/pages/FooterBar.vue';
+
 </script>
 
 <style scoped>
