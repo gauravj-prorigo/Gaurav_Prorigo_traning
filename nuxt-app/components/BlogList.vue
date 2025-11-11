@@ -3,7 +3,7 @@
     <div v-if="blogs.length">
       <div v-for="b in blogs" :key="b.id" class="card">
         <div v-if="store.currentEdit && store.currentEdit.id === b.id">
-          <!-- editing is handled in BlogForm; this is normal view -->
+          <!-- editing is handled in BlogForm -->
           <small>Editing...</small>
         </div>
         <div v-else>
@@ -11,8 +11,9 @@
           <p>{{ b.content }}</p>
           <small>{{ formatDate(b.created_at) }}</small>
           <div style="text-align:right;margin-top:.5rem">
-            <button @click="store.startEditing(b)">Edit</button>
-            <button @click="remove(b.id)">Delete</button>
+            <!-- Only show buttons if role is admin -->
+            <button v-if="authStore.user === 'admin'" @click="store.startEditing(b)">Edit</button>
+            <button v-if="authStore.user === 'admin'" @click="remove(b.id)">Delete</button>
           </div>
         </div>
       </div>
@@ -24,13 +25,17 @@
 <script setup>
 import { computed } from 'vue'
 import { useBlogStore } from '~/stores/blogs'
+import { useAuthStore } from '#imports'
+
 const store = useBlogStore()
 const blogs = computed(() => store.allBlogs)
+const authStore = useAuthStore()  // <-- use auth store here
 const config = useRuntimeConfig()
 
 const remove = (id) => {
   if (confirm('Delete this blog?')) store.deleteBlog(config.public.apiBase, id)
 }
+
 const formatDate = (d) => d ? new Date(d).toLocaleString() : ''
 </script>
 
