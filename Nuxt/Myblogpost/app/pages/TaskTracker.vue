@@ -1,6 +1,6 @@
 <template>
   <div class="app">
-    <NuxtLink to="/" class="return-btn">← Return Home</NuxtLink>
+    <NuxtLink to="/Homepage" class="return-btn">← Return Home</NuxtLink>
     <h1>Simple Todo App (Nuxt)</h1>
 
     <input v-model="taskStore.newTodo" placeholder="Enter a task..." />
@@ -42,6 +42,10 @@ const taskStore = useTaskStore()
 
 onMounted(() => {
   taskStore.loadTodos()
+})
+
+definePageMeta({
+    layout: 'authenticated'
 })
 </script>
 

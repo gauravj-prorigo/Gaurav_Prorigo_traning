@@ -31,7 +31,7 @@ const router = useRouter()
 }
 
 .hero {
-    background: url(../../assets/photo-1507525428034-b723cf961d3e.avif) center/cover no-repeat;
+    /* background: url(../../assets/photo-1507525428034-b723cf961d3e.avif) center/cover no-repeat; */
     height: 80vh;
     display: flex;
     align-items: center;

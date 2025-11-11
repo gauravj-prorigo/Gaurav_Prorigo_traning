@@ -47,7 +47,7 @@ function logout() {
 
 <style scoped>
 .header-bar {
-  background-color: #9eb1c5;
+  background-color: #4e5a66;
   color: #fff;
   padding: 22px 24px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -84,7 +84,6 @@ nav {
   font-weight: bold;
 }
 
-/* push logout to the far right */
 .nav-right {
   margin-left: auto;
 }
