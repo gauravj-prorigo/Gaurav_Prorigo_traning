@@ -7,17 +7,37 @@
         <nav>
           <button :class="{ active: view==='blogs' }" @click="view='blogs'">Blogs</button>
           <button :class="{ active: view==='tasks' }" @click="view='tasks'">Tasks</button>
+          <button @click="logout">Logout</button>
         </nav>
       </header>
 
+      <!-- Blogs Section -->
       <section v-if="view==='blogs'">
-        <BlogForm />
+        <!-- Add form visible only for employee -->
+     <BlogForm v-if="authStore.user === 'employee' || blogStore.currentEdit" />
+
+        <!-- Blog list visible for all roles -->
         <BlogList />
+
+        <!-- Edit/Delete buttons visible only for admin -->
+        <div v-if="authStore.user === 'admin'">
+        </div>
       </section>
 
+      <!-- Tasks Section -->
       <section v-if="view==='tasks'">
-        <TaskForm />
+        <!-- Add form visible only for employee -->
+        <TaskForm v-if="authStore.user === 'employee'" />
+
+        <!-- Task list visible for all roles -->
         <TaskList />
+
+        <!-- Edit/Delete buttons visible only for admin -->
+        <div v-if="authStore.user === 'admin'">
+          <button>Edit Task</button>
+          <button>Delete Task</button>
+
+        </div>
       </section>
     </div>
   </main>
@@ -31,19 +51,34 @@ import TaskForm from '~/components/TaskForm.vue'
 import TaskList from '~/components/TaskList.vue'
 import { useBlogStore } from '~/stores/blogs'
 import { useTasksStore } from '~/stores/tasks'
-import auth from '~/middleware/auth';
+import { useAuthStore } from '#imports'
+import { useRouter } from '#imports'
+
 definePageMeta({
-    middleware: [auth],
+    middleware: ['auth'],
 })
+
 const view = ref('blogs')
 const blogStore = useBlogStore()
 const tasksStore = useTasksStore()
+const authStore = useAuthStore()
+
+// ✅ Initialize the user from localStorage immediately
+authStore.initFromStorage()
+
 const config = useRuntimeConfig()
+const router = useRouter()
 
 onMounted(() => {
   blogStore.fetchBlogs(config.public.apiBase)
   tasksStore.fetchTasks(config.public.apiBase)
+  console.log("the user is" , authStore.user)
 })
+
+function logout() {
+  authStore.logout()
+  router.push('/')
+}
 </script>
 
 <style scoped>
