@@ -12,9 +12,11 @@
             id="username"
             v-model="form.username"
             autocomplete="username"
+            placeholder="Username"
             required
             :class="{ invalid: fieldErrors.username }"
-            @blur="validateField('username')"
+            @blur="validateField('username')
+            "
           />
           <p v-if="fieldErrors.username" class="field-error">{{ fieldErrors.username }}</p>
         </div>
@@ -24,6 +26,7 @@
           <input
             id="password"
             type="password"
+            placeholder="Password"
             v-model="form.password"
             autocomplete="current-password"
             required
@@ -83,11 +86,12 @@ function validateField(field) {
     fieldErrors.username = 'Enter your username (min 3 chars).'
   }
   if (field === 'password' && (!form.password )) {
-    fieldErrors.password = 'Password must be at least 6 characters.'
+    fieldErrors.password = 'Password must be at least 4 characters.'
   }
 }
 
 async function onSubmit() {
+  // simple client validation
   validateField('username')
   validateField('password')
   if (fieldErrors.username || fieldErrors.password) {
@@ -99,10 +103,24 @@ async function onSubmit() {
   error.value = null
 
   try {
-    await auth.login({ username: form.username, password: form.password })
-    const next = route.query.next ? decodeURIComponent(String(route.query.next)) : '/Homepage'
-    router.push(next)
+    console.log('Logging in…')
+    const user = await auth.login({ username: form.username, password: form.password })
+    console.log('Login resolved, user:', user, 'store token:', auth.token)
+
+    // sanity check: token and user present
+    if (!auth.token || !auth.user) {
+      throw new Error('Login succeeded but auth state not set.')
+    }
+
+    // compute next route; use navigateTo (Nuxt 3)
+    const next = route.query.next ? decodeURIComponent(String(route.query.next)) : '/dashboard'
+    console.log('Navigating to', next)
+
+    // navigate and await it
+    await navigateTo(next)
+    console.log('Navigation complete')
   } catch (err) {
+    console.error('Login error:', err)
     error.value = err?.message || err?.data?.message || 'Login failed'
   } finally {
     loading.value = false
@@ -117,7 +135,11 @@ async function onSubmit() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f6f8fb;
+  /* background: #c9aaf054; */
+    background-image: url("https://e1.pxfuel.com/desktop-wallpaper/407/1022/desktop-wallpaper-website-backgrounds-login-page.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
   padding: 24px;
   box-sizing: border-box;
 }
@@ -127,6 +149,7 @@ async function onSubmit() {
   width: 100%;
   max-width: 420px;
   background: #ffffff;
+
   border-radius: 8px;
   padding: 22px;
   box-sizing: border-box;
@@ -201,7 +224,7 @@ input:focus {
   border-radius: 8px;
   border: none;
   font-weight: 700;
-  background: linear-gradient(90deg, #2b6cb0, #1f4ea6);
+ background: rgb(72, 163, 224);
   color: white;
   cursor: pointer;
   transition: transform .12s ease, opacity .12s ease;
