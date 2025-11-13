@@ -2,7 +2,7 @@
   <!-- :key forces remount when route changes (helps SPA redirect -> fresh layout) -->
   <div class="auth-page" :key="route.fullPath">
     <div class="auth-card" role="region" aria-labelledby="register-title">
-      <h1 id="register-title">Register</h1>
+      <h1 id="register-title">Create account</h1>
 
       <p v-if="infoMessage" class="info">{{ infoMessage }}</p>
 
@@ -11,7 +11,7 @@
           <label for="username">Username</label>
           <input
             id="username"
-            v-model="form.username"
+            v-model.trim="form.username"
             autocomplete="username"
             required
             :class="{ invalid: fieldErrors.username }"
@@ -26,7 +26,7 @@
           <input
             id="email"
             type="email"
-            v-model="form.email"
+            v-model.trim="form.email"
             autocomplete="email"
             required
             :class="{ invalid: fieldErrors.email }"
@@ -38,47 +38,49 @@
 
         <div class="form-group">
           <label for="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            v-model="form.password"
-            autocomplete="new-password"
-            required
-            minlength="6"
-            :class="{ invalid: fieldErrors.password }"
-            @blur="validateField('password')"
-            placeholder="At least 6 characters"
-          />
+          <div class="relative">
+            <input
+              id="password"
+              :type="showPassword ? 'text' : 'password'"
+              v-model="form.password"
+              autocomplete="new-password"
+              required
+              minlength="6"
+              :class="{ invalid: fieldErrors.password }"
+              @blur="validateField('password')"
+              placeholder="At least 6 characters"
+            />
+            <button type="button" class="show-btn" @click="showPassword = !showPassword" :aria-pressed="showPassword">
+              {{ showPassword ? 'Hide' : 'Show' }}
+            </button>
+          </div>
           <p v-if="fieldErrors.password" class="field-error">{{ fieldErrors.password }}</p>
         </div>
 
-        <div class="form-group">
-          <label for="role">Role</label>
-          <select
-            id="role"
-            v-model="form.role"
-            required
-            :class="{ invalid: fieldErrors.role }"
-            @blur="validateField('role')"
-          >
-            <option disabled value="">Select role</option>
-            <option value="user">User</option>
-            <option value="employee">Employee</option>
-            <option value="admin">Admin</option>
-          </select>
-          <p v-if="fieldErrors.role" class="field-error">{{ fieldErrors.role }}</p>
+        <!-- NOTE: role selection removed — backend will set role = 'user' by default -->
+        <div class="muted-note">
+          New accounts are created as <strong>user</strong> by default. Admin will assign other roles later.
         </div>
 
         <button type="submit" :disabled="loading" class="btn-primary" aria-busy="loading">
-          {{ loading ? 'Registering...' : 'Register' }}
+          <svg v-if="loading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+          <span>{{ loading ? 'Creating account...' : 'Create account' }}</span>
         </button>
 
-        <p class="server-error" v-if="error">{{ error }}</p>
+        <div v-if="error" class="server-error" role="alert">
+          <p v-if="typeof error === 'string'">{{ error }}</p>
+          <ul v-else>
+            <li v-for="(msg, idx) in flattenErrors(error)" :key="idx">{{ msg }}</li>
+          </ul>
+        </div>
       </form>
 
       <p class="switch-text">
         Already have an account?
-        <NuxtLink to="/">Login</NuxtLink>
+        <NuxtLink to="/login">Login</NuxtLink>
       </p>
     </div>
   </div>
@@ -101,18 +103,17 @@ const route = useRoute()
 const form = reactive({
   username: '',
   email: '',
-  password: '',
-  role: ''
+  password: ''
 })
 
 const loading = ref(false)
 const error = ref(null)
+const showPassword = ref(false)
 
 const fieldErrors = reactive({
   username: null,
   email: null,
-  password: null,
-  role: null
+  password: null
 })
 
 // Optional info message (if you pass reason/next to register route)
@@ -143,52 +144,70 @@ function validateField(field) {
       fieldErrors.password = 'Password must be at least 6 characters.'
     }
   }
+}
 
-  if (field === 'role') {
-    if (!form.role) {
-      fieldErrors.role = 'Please select a role.'
-    }
-  }
+/**
+ * Utility to flatten backend error objects/arrays into simple messages array
+ * Accepts many common DRF error shapes: { field: ["err"] }, ["err"], "err"
+ */
+function flattenErrors(err) {
+  if (!err) return []
+  if (typeof err === 'string') return [err]
+  if (Array.isArray(err)) return err.flatMap(e => (typeof e === 'string' ? e : JSON.stringify(e)))
+  // object: collect values
+  return Object.values(err).flatMap(v => (Array.isArray(v) ? v : [v])).map(String)
 }
 
 async function onSubmit() {
+  // clear errors
+  fieldErrors.username = null
+  fieldErrors.email = null
+  fieldErrors.password = null
+  error.value = null
+
   // run validations
   validateField('username')
   validateField('email')
   validateField('password')
-  validateField('role')
 
-  if (fieldErrors.username || fieldErrors.email || fieldErrors.password || fieldErrors.role) {
+  if (fieldErrors.username || fieldErrors.email || fieldErrors.password) {
     error.value = 'Please fix the highlighted fields.'
     return
   }
 
   loading.value = true
-  error.value = null
-
   try {
-    const res = await auth.register({
+    // 1) register user (backend sets role='user')
+    const registerResponse = await auth.register({
       username: form.username,
       email: form.email,
-      password: form.password,
-      role: form.role
+      password: form.password
     })
 
-    // if backend returns tokens => auto-login possible, else go to login
-    // we check common keys (tokens.access or token)
-    const token = res?.tokens?.access ?? res?.token ?? res?.access ?? null
-    if (token) {
-      // backend returned token; persist and redirect to intended page
-      auth.setTokenAndUser(token, res.user ?? { username: form.username, role: form.role })
-      const next = route.query.next ? decodeURIComponent(String(route.query.next)) : '/Homepage'
-      router.push(next)
-    } else {
-      // no token: send user to login page
-      router.push('/')
-    }
+    // If backend returned structured errors, show them
+    // (auth.register throws on non-OK, but backend might still return shape)
+    // Now auto-login for smooth UX (login will fetch /me/ and persist)
+    await auth.login({ username: form.username, password: form.password })
+
+    // redirect to dashboard or intended page
+    const next = route.query.next ? decodeURIComponent(String(route.query.next)) : '/dashboard'
+    await router.push(next)
   } catch (err) {
-    // show error message
-    error.value = err?.message || err?.data?.message || 'Registration failed'
+    // Try to parse common error shapes
+    // err might be Error object with message or thrown response
+    if (err && typeof err === 'object' && err.detail) {
+      error.value = err.detail
+    } else if (err && typeof err === 'object' && (err.username || err.email || err.password)) {
+      // field level errors from backend (e.g., DRF)
+      if (err.username) fieldErrors.username = Array.isArray(err.username) ? err.username.join(' ') : String(err.username)
+      if (err.email) fieldErrors.email = Array.isArray(err.email) ? err.email.join(' ') : String(err.email)
+      if (err.password) fieldErrors.password = Array.isArray(err.password) ? err.password.join(' ') : String(err.password)
+      error.value = 'Please fix the highlighted fields.'
+    } else if (err && typeof err === 'string') {
+      error.value = err
+    } else {
+      error.value = 'Registration failed. Please try again.'
+    }
   } finally {
     loading.value = false
   }
@@ -202,7 +221,9 @@ async function onSubmit() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f6f8fb;
+  background-image: url("https://e1.pxfuel.com/desktop-wallpaper/407/1022/desktop-wallpaper-website-backgrounds-login-page.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
   padding: 24px;
   box-sizing: border-box;
 }
@@ -210,28 +231,27 @@ async function onSubmit() {
 /* Card */
 .auth-card {
   width: 100%;
-  max-width: 420px;
-  background: #ffffff;
-  border-radius: 8px;
-  padding: 22px;
+  max-width: 520px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), #ffffff);
+  border-radius: 12px;
+  padding: 26px;
   box-sizing: border-box;
-  border: 1px solid #e6eef8;
-  box-shadow: 0 6px 18px rgba(20, 40, 80, 0.04);
+  border: 1px solid rgba(20, 40, 80, 0.06);
+  box-shadow: 0 10px 30px rgba(16,24,40,0.06);
 }
 
 /* Title */
 h1 {
-  margin: 0 0 10px;
-  font-size: 1.25rem;
-  color: #102a43;
-  text-align: center;
+  margin: 0 0 8px;
+  font-size: 1.4rem;
+  color: #0b2545;
+  text-align: left;
 }
 
 /* Info message shown when redirected */
 .info {
   margin: 0 0 12px;
-  text-align: center;
-  color: #276749; /* greenish */
+  color: #155724; /* greenish */
   background: #ecfdf5;
   padding: 8px 12px;
   border-radius: 6px;
@@ -239,31 +259,47 @@ h1 {
 }
 
 /* Form */
-.form { display: grid; gap: 12px; }
+.form { display: grid; gap: 12px; margin-top: 6px; }
 
 /* Form group */
 .form-group { display: flex; flex-direction: column; gap: 6px; }
 
 label {
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: #243b53;
 }
 
 /* Inputs */
-input, select {
+input {
   padding: 10px 12px;
-  border-radius: 6px;
-  border: 1px solid #dbe9fb;
+  border-radius: 8px;
+  border: 1px solid #d6e6fb;
   background: #fbfdff;
   font-size: 0.95rem;
   outline: none;
   transition: border-color .12s ease, box-shadow .12s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-input:focus, select:focus {
+input:focus {
   border-color: #2b6cb0;
-  box-shadow: 0 6px 14px rgba(43,108,176,0.06);
+  box-shadow: 0 8px 22px rgba(43,108,176,0.06);
+}
+
+/* Show button */
+.relative { position: relative; }
+.show-btn {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #475569;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 /* Invalid input */
@@ -274,21 +310,35 @@ input:focus, select:focus {
 /* Field error */
 .field-error {
   color: #e53e3e;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   margin-top: 4px;
+}
+
+/* Muted note */
+.muted-note {
+  font-size: 0.9rem;
+  color: #475569;
+  background: #f8fafc;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #edf2f7;
 }
 
 /* Primary button */
 .btn-primary {
-  margin-top: 4px;
+  margin-top: 6px;
   width: 100%;
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: 10px;
   border: none;
   font-weight: 700;
-  background: linear-gradient(90deg, #2b6cb0, #1f4ea6);
+  background: linear-gradient(90deg,#06b6d4,#3b82f6);
   color: white;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   transition: transform .12s ease, opacity .12s ease;
 }
 
@@ -298,10 +348,23 @@ input:focus, select:focus {
   transform: none;
 }
 
+/* spinner */
+.spinner {
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Server errors */
 .server-error {
   margin-top: 8px;
-  color: #972a2a;
-  text-align: center;
+  color: #7f1d1d;
+  background: #fff1f2;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
   font-weight: 600;
 }
 
@@ -320,9 +383,9 @@ input:focus, select:focus {
 }
 
 /* Small screens */
-@media (max-width: 420px) {
-  .auth-card { padding: 16px; border-radius: 6px; }
-  input, select { padding: 9px 10px; }
-  .btn-primary { padding: 10px; border-radius: 6px; }
+@media (max-width: 640px) {
+  .auth-card { padding: 18px; border-radius: 8px; max-width: 420px; }
+  input { padding: 10px; }
+  .btn-primary { padding: 10px; border-radius: 8px; }
 }
 </style>
