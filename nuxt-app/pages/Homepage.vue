@@ -10,29 +10,20 @@
           <button @click="logout">Logout</button>
         </nav>
       </header>
-
-      <!-- Blogs Section -->
       <section v-if="view==='blogs'">
-        <!-- Add form visible only for employee -->
      <BlogForm v-if="authStore.user === 'employee' || blogStore.currentEdit" />
 
-        <!-- Blog list visible for all roles -->
         <BlogList />
 
-        <!-- Edit/Delete buttons visible only for admin -->
         <div v-if="authStore.user === 'admin'">
         </div>
       </section>
 
-      <!-- Tasks Section -->
       <section v-if="view==='tasks'">
-        <!-- Add form visible only for employee -->
         <TaskForm v-if="authStore.user === 'employee'" />
 
-        <!-- Task list visible for all roles -->
         <TaskList />
 
-        <!-- Edit/Delete buttons visible only for admin -->
         <div v-if="authStore.user === 'admin'">
           <button>Edit Task</button>
           <button>Delete Task</button>
@@ -45,7 +36,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import BlogForm from '~/components/BlogForm.vue'
+import BlogForm from '~/pages/BlogForm.vue'
 import BlogList from '~/components/BlogList.vue'
 import TaskForm from '~/components/TaskForm.vue'
 import TaskList from '~/components/TaskList.vue'
@@ -63,7 +54,6 @@ const blogStore = useBlogStore()
 const tasksStore = useTasksStore()
 const authStore = useAuthStore()
 
-// ✅ Initialize the user from localStorage immediately
 authStore.initFromStorage()
 
 const config = useRuntimeConfig()

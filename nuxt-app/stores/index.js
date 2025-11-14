@@ -1,6 +1,6 @@
-// store/index.js
+
 export const state = () => ({
-  tasks: []  // Centralized state
+  tasks: [] 
 })
 
 export const mutations = {

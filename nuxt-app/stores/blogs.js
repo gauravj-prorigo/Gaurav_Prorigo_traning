@@ -9,36 +9,38 @@ export const useBlogStore = defineStore('blog', {
     editingBlog: null
   }),
   actions: {
-    // Fetch all blogs
+    // Fetch all blogs from backend and normalize author shape
     async fetchBlogs(apiBase) {
       const toast = useToast()
       const auth = useAuthStore()
 
       try {
-        this.blogs = await $fetch(`${apiBase}/blogs/`, {
-          headers: {
-            Authorization: `Bearer ${auth.token}`
+        // ensure caller passes apiBase like 'http://127.0.0.1:8000/api'
+        const data = await $fetch(`${apiBase}/blogs/`, {
+          headers: { Authorization: `Bearer ${auth.token}` }
+        })
+
+        // normalize each blog so author becomes object { id, username? }
+        this.blogs = (Array.isArray(data) ? data : []).map(b => {
+          const authorValue = b?.author
+          let authorObj = null
+          if (authorValue === null || authorValue === undefined) {
+            authorObj = null
+          } else if (typeof authorValue === 'object') {
+            authorObj = authorValue
+          } else {
+            // numeric id -> convert to object { id: <num> }
+            authorObj = { id: Number(authorValue) }
           }
+          return { ...b, author: authorObj }
         })
       } catch (err) {
-        console.error(err)
+        console.error('fetchBlogs error', err)
         toast.error('Failed to load blogs')
       }
     },
-    /*
-    // async fetchBlogs(apiBase) {
 
-    //   const toast = useToast()
-    //   try {
-    //     this.blogs = await $fetch(`${apiBase}/blogs/`)
-    //   } catch (err) {
-    //     console.error(err)
-    //     toast.error('Failed to load blogs')
-    //   }
-    // },
-    */
-
-    // Add a new blog
+    // Create blog (backend should set author automatically)
     async addBlog(apiBase, title, content) {
       const toast = useToast()
       const auth = useAuthStore()
@@ -52,38 +54,22 @@ export const useBlogStore = defineStore('blog', {
           },
           body: JSON.stringify({ title, content })
         })
-        this.blogs.unshift(created)
+
+        // normalize author for the created blog too
+        const authorValue = created?.author
+        const authorObj = (typeof authorValue === 'object') ? authorValue : { id: Number(authorValue) }
+        this.blogs.unshift({ ...created, author: authorObj })
         toast.success('Blog created')
       } catch (err) {
-        console.error(err)
+        console.error('addBlog error', err)
         toast.error('Failed to create blog')
       }
     },
-    /*
-    // async addBlog(apiBase, title, content) {
-    //   const toast = useToast()
-    //   try {
-    //     const created = await $fetch(`${apiBase}/blogs/`, {
-    //       method: 'POST',
-    //       headers: { 'Content-Type': 'application/json' },
-    //       body: JSON.stringify({ title, content })
-    //     })
-    //     this.blogs.unshift(created)
-    //     toast.success('Blog created')
-    //   } catch (err) {
-    //     console.error(err)
-    //     toast.error('Failed to create blog')
-    //   }
-    // },
-    */
 
-    // Start editing a blog
     startEditing(blog) { this.editingBlog = { ...blog } },
-
-    // Cancel editing
     cancelEditing() { this.editingBlog = null },
 
-    // Update a blog
+    // Update blog
     async updateBlog(apiBase, id, title, content) {
       const toast = useToast()
       const auth = useAuthStore()
@@ -97,36 +83,22 @@ export const useBlogStore = defineStore('blog', {
           },
           body: JSON.stringify({ title, content })
         })
+
+        // normalize author
+        const authorValue = updated?.author
+        const authorObj = (typeof authorValue === 'object') ? authorValue : { id: Number(authorValue) }
+
         const idx = this.blogs.findIndex(b => b.id === id)
-        if (idx !== -1) this.blogs.splice(idx, 1, updated)
+        if (idx !== -1) this.blogs.splice(idx, 1, { ...updated, author: authorObj })
         this.editingBlog = null
         toast.success('Blog updated')
       } catch (err) {
-        console.error(err)
+        console.error('updateBlog error', err)
         toast.error('Failed to update blog')
       }
     },
-    /*
-    // async updateBlog(apiBase, id, title, content) {
-    //   const toast = useToast()
-    //   try {
-    //     const updated = await $fetch(`${apiBase}/blogs/${id}/`, {
-    //       method: 'PUT',
-    //       headers: { 'Content-Type': 'application/json' },
-    //       body: JSON.stringify({ title, content })
-    //     })
-    //     const idx = this.blogs.findIndex(b => b.id === id)
-    //     if (idx !== -1) this.blogs.splice(idx, 1, updated)
-    //     this.editingBlog = null
-    //     toast.success('Blog updated')
-    //   } catch (err) {
-    //     console.error(err)
-    //     toast.error('Failed to update blog')
-    //   }
-    // },
-    */
 
-    // Delete a blog
+    // Delete blog
     async deleteBlog(apiBase, id) {
       const toast = useToast()
       const auth = useAuthStore()
@@ -134,30 +106,15 @@ export const useBlogStore = defineStore('blog', {
       try {
         await $fetch(`${apiBase}/blogs/${id}/`, {
           method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${auth.token}`
-          }
+          headers: { Authorization: `Bearer ${auth.token}` }
         })
         this.blogs = this.blogs.filter(b => b.id !== id)
         toast.info('Blog deleted')
       } catch (err) {
-        console.error(err)
+        console.error('deleteBlog error', err)
         toast.error('Failed to delete blog')
       }
-    },
-    /*
-    // async deleteBlog(apiBase, id) {
-    //   const toast = useToast()
-    //   try {
-    //     await $fetch(`${apiBase}/blogs/${id}/`, { method: 'DELETE' })
-    //     this.blogs = this.blogs.filter(b => b.id !== id)
-    //     toast.info('Blog deleted')
-    //   } catch (err) {
-    //     console.error(err)
-    //     toast.error('Failed to delete blog')
-    //   }
-    // },
-    */
+    }
   },
   getters: {
     allBlogs: (s) => s.blogs,
