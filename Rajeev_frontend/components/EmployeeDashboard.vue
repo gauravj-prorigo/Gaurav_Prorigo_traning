@@ -55,13 +55,7 @@
               <div class="stat-label">My Posts</div>
             </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-icon">📅</div>
-            <div class="stat-info">
-              <div class="stat-number">{{ recentPostsCount }}</div>
-              <div class="stat-label">This Week</div>
-            </div>
-          </div>
+       
         </div>
       </div>
 
@@ -201,11 +195,7 @@ function editBlog(blog) {
   showBlogForm.value = true
 }
 
-function viewBlog(blog) {
-  // Navigate to blog view page or open in modal
-  console.log('View blog:', blog)
-  // You can implement navigation: router.push(`/blogs/${blog.id}`)
-}
+
 
 async function deleteBlog(blog) {
   if (!confirm('Are you sure you want to delete this post?')) return
