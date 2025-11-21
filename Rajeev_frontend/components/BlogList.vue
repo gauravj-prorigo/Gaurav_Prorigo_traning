@@ -111,6 +111,8 @@ function cancelEdit() {
   editTitle.value = ''
   editContent.value = ''
 }
+
+// Update blog
 async function updateBlog(b) {
   try {
     const res = await fetch(`${API_BASE}/blogs/${b.id}/`, {
