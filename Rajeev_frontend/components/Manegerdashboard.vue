@@ -109,11 +109,11 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="blog in filteredBlogs" :key="blog.id">
+            <tr v-for="blog in blogs" :key="blog.id">
               <td class="post-title">
                 <div class="title-content">
                   <h4 class="title-text">{{ blog.title }}</h4>
-                  <p class="title-excerpt">{{ getExcerpt(blog.content) }}</p>
+                  <p class="title-excerpt">{{blog.content}}</p>
                 </div>
               </td>
               <td class="post-author">
@@ -132,22 +132,11 @@
               <td class="post-date">
                 {{ formatDate(blog.created_at) }}
               </td>
-              <!-- <td class="post-date">
-                {{ formatDate(blog.updated_at) }}
-              </td> -->
-              <!-- <td class="post-actions">
-                <button class="btn btn-edit" @click="editPost(blog)" title="Edit Post">
-                  ✏️ Edit
-                </button>
-                <button class="btn btn-view" @click="viewPost(blog)" title="View Post">
-                  👁️ View
-                </button>
-              </td> -->
             </tr>
           </tbody>
         </table>
  
-        <div v-if="filteredBlogs.length === 0" class="empty-state">
+        <div v-if="blogs.length === 0" class="empty-state">
           <div class="empty-icon">📝</div>
           <h3>No posts found</h3>
           <p>No blog posts match your current filters.</p>
@@ -160,7 +149,6 @@
  
     <BlogForm 
       v-if="showBlogForm" 
-      :blog="editingBlog"
       @close="closeBlogForm" 
       @saved="onBlogSaved"
     />
@@ -175,62 +163,23 @@ import { useAuthStore } from '#imports'
  
 const auth = useAuthStore()
 const API_BASE = 'http://127.0.0.1:8000'
- 
 const blogs = ref([])
 const loading = ref(false)
-const searchQuery = ref('')
-const statusFilter = ref('all')
-const authorFilter = ref('all')
-const editingPost = ref(null)
 const showBlogForm = ref(false) 
-const editingBlog = ref(null)
 onMounted(() => {
   fetchBlogs()
 })
- 
-
-
 // Computed properties
 const totalPosts = computed(() => blogs.value.length)
 const activeAuthors = computed(() => {
-  const authors = new Set(blogs.value.map(blog => blog.author_username ).filter(Boolean))
-  return authors.size
+  const uniqueAuthorIds = new Set(blogs.value.map(b => b.author))
+  return uniqueAuthorIds.size
 })
+
 const thisWeekPosts = computed(() => {
   const oneWeekAgo = new Date()
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
   return blogs.value.filter(blog => new Date(blog.created_at) > oneWeekAgo).length
-})
- 
-const uniqueAuthors = computed(() => {
-  const authors = blogs.value.map(blog => blog.author?.username).filter(Boolean)
-  return [...new Set(authors)].sort()
-})
- 
-const filteredBlogs = computed(() => {
-  let filtered = blogs.value
- 
-  // Search filter
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(blog =>
-      blog.title.toLowerCase().includes(query) ||
-      blog.content.toLowerCase().includes(query) ||
-      blog.author?.username.toLowerCase().includes(query)
-    )
-  }
- 
-  // Status filter
-  if (statusFilter.value !== 'all') {
-    filtered = filtered.filter(blog => (blog.status || 'published') === statusFilter.value)
-  }
- 
-  // Author filter
-  if (authorFilter.value !== 'all') {
-    filtered = filtered.filter(blog => blog.author?.username === authorFilter.value)
-  }
- 
-  return filtered
 })
  
 async function fetchBlogs() {
@@ -246,12 +195,9 @@ async function fetchBlogs() {
     loading.value = false
   }
 }
- 
 function refreshPosts() {
   fetchBlogs()
 }
- 
-
 function closeBlogForm() {
   showBlogForm.value = false
   editingBlog.value = null
@@ -261,39 +207,9 @@ function onBlogSaved() {
   closeBlogForm()
   fetchBlogs()
 }
-
-function filterByStatus(status) {
-  statusFilter.value = status
-}
- 
-function clearFilters() {
-  searchQuery.value = ''
-  statusFilter.value = 'all'
-  authorFilter.value = 'all'
-}
- 
-function editPost(blog) {
-  // Implement edit functionality
-  console.log('Edit post:', blog)
-  editingPost.value = blog
-  // You would open an editor modal or navigate to edit page
-}
- 
-function viewPost(blog) {
-  // Implement view functionality
-  console.log('View post:', blog)
-  // Navigate to blog view: router.push(`/blogs/${blog.id}`)
-}
- 
-function getExcerpt(content, length = 80) {
-  if (!content) return 'No content'
-  return content.length > length ? content.substring(0, length) + '...' : content
-}
- 
 function formatDate(dateString) {
   if (!dateString) return '-'
-  const options = { year: 'numeric', month: 'short', day: 'numeric' }
-  return new Date(dateString).toLocaleDateString(undefined, options)
+  return new Date(dateString).toLocaleDateString
 }
  
 function getInitials(username) {

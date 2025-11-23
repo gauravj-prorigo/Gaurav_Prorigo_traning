@@ -91,6 +91,7 @@
           </div>
 
           <div v-else class="posts-grid">
+              <h3 class="blog-title">List of Your Blogs</h3>
             <div v-for="blog in blogs" :key="blog.id" class="blog-card">
               <div class="blog-header">
                 <h3 class="blog-title">{{ blog.title }}</h3>
@@ -103,10 +104,10 @@
                 <p class="blog-excerpt">{{ getExcerpt(blog.content) }}</p>
                 <div class="blog-meta">
                   <span class="blog-date">{{ formatDate(blog.created_at) }}</span>
-                  <span class="blog-views" v-if="blog.views">👁️ {{ blog.views }} views</span>
+                  <!-- <span class="blog-views" v-if="blog.views">👁️ {{ blog.views }} views</span> -->
                 </div>
               </div>
-
+<!-- 
               <div class="blog-actions">
                 <button class="btn btn-sm btn-edit" @click="editBlog(blog)">
                   ✏️ Edit
@@ -114,7 +115,7 @@
                 <button class="btn btn-sm btn-delete" @click="deleteBlog(blog)">
                   🗑️ Delete
                 </button>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
@@ -124,7 +125,6 @@
     <!-- Blog Form Modal -->
     <BlogForm 
       v-if="showBlogForm" 
-      :blog="editingBlog"
       @close="closeBlogForm" 
       @saved="onBlogSaved"
     />
@@ -137,7 +137,7 @@ import { useAuthStore } from '#imports'
 import BlogForm from './BlogForm.vue'
 
 const showBlogForm = ref(false)
-const editingBlog = ref(null)
+// const editingBlog = ref(null)
 const auth = useAuthStore()
 const API_BASE = 'http://127.0.0.1:8000'
 
@@ -189,27 +189,27 @@ async function fetchBlogs() {
   }
 }
 
-function editBlog(blog) {
-  editingBlog.value = { ...blog }
-  console.log('Editing blog:', editingBlog)
-  showBlogForm.value = true
-}
+// function editBlog(blog) {
+//   editingBlog.value = { ...blog }
+//   console.log('Editing blog:', editingBlog)
+//   showBlogForm.value = true
+// }
 
 
 
-async function deleteBlog(blog) {
-  if (!confirm('Are you sure you want to delete this post?')) return
+// async function deleteBlog(blog) {
+//   if (!confirm('Are you sure you want to delete this post?')) return
   
-  try {
-    await fetch(`${API_BASE}/api/blogs/${blog.id}/`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${auth.token}` }
-    })
-    await fetchBlogs() // Refresh the list
-  } catch (e) {
-    console.error('Failed to delete blog:', e)
-  }
-}
+//   try {
+//     await fetch(`${API_BASE}/api/blogs/${blog.id}/`, {
+//       method: 'DELETE',
+//       headers: { Authorization: `Bearer ${auth.token}` }
+//     })
+//     await fetchBlogs() // Refresh the list
+//   } catch (e) {
+//     console.error('Failed to delete blog:', e)
+//   }
+// }
 
 function viewMyStats() {
   // Implement stats view
@@ -219,13 +219,15 @@ function viewMyStats() {
 
 function closeBlogForm() {
   showBlogForm.value = false
-  editingBlog.value = null
+  // editingBlog.value = null
 }
 
-function onBlogSaved() {
+function onBlogSaved(created) {
   closeBlogForm()
-  fetchBlogs()
+  if (!created) return
+  blogs.value.unshift(created)
 }
+
 
 function getExcerpt(content, length = 120) {
   if (!content) return 'No content'
@@ -281,14 +283,13 @@ function getInitials(username) {
 .profile-card {
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   border: 1px solid #e2e8f0;
   overflow: hidden;
 }
 
 .profile-header {
   padding: 1.75rem;
-  background: linear-gradient(135deg, #0f0f0f 0%, #14222f 100%);
+  background: black;
   color: white;
   display: flex;
   align-items: center;
@@ -306,10 +307,6 @@ function getInitials(username) {
   font-weight: bold;
   font-size: 1.375rem;
   border: 2px solid rgba(255, 255, 255, 0.3);
-}
-
-.profile-info {
-  flex: 1;
 }
 
 .profile-name {
