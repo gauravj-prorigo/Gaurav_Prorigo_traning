@@ -14,10 +14,12 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useBlogStore } from '~/stores/blogs'
-
+import { useAuthStore } from '#imports'
+import { useToast } from 'vue-toastification' 
+// or your toast helper
 const emit = defineEmits(['close', 'saved'])
-const store = useBlogStore()
+const auth = useAuthStore()
+const toast = useToast()
 const API_BASE = 'http://127.0.0.1:8000/api'
 
 // local fields
@@ -35,8 +37,28 @@ const submit = async () => {
   }
 
   try {
-    // create via store (store should push created blog into its blogs list)
-    const created = await store.addBlog(API_BASE, t, c)
+    const url = `${API_BASE}/blogs/` // make path consistent with your GET
+    console.log('[BlogForm] POST ->', url)
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${auth.token}`
+      },
+      body: JSON.stringify({ title: t, content: c })
+    })
+
+    console.log('[BlogForm] raw response', res)
+
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => '')
+      console.error('[BlogForm] server error body:', errBody)
+      toast.error('Failed to create blog')
+      return
+    }
+    const created = await res.json()
+    console.log('[BlogForm] created blog', created)
     // clear local fields
     title.value = ''
     content.value = ''
@@ -44,6 +66,8 @@ const submit = async () => {
     emit('saved', created ?? null)
     // tell parent to close the modal
     emit('close')
+  
+     toast.success('Blog created')
   } catch (err) {
     console.error('submit error', err)
 

@@ -55,20 +55,21 @@ export const useBlogStore = defineStore('blog', {
           },
           body: JSON.stringify({ title, content })
         })
-
-        // normalize author for the created blog too
-        const authorValue = created?.author
-        const authorObj = (typeof authorValue === 'object') ? authorValue : { id: Number(authorValue) }
-        this.blogs.unshift({ ...created, author: authorObj })
+        console.log('addBlog created', created)
+        // // normalize author for the created blog too
+        // const authorValue = created?.author
+        // const authorObj = (typeof authorValue === 'object') ? authorValue : { id: Number(authorValue) }
+        // this.blogs.unshift({ ...created, author: authorObj })
         toast.success('Blog created')
+        return created
       } catch (err) {
         console.error('addBlog error', err)
         toast.error('Failed to create blog')
       }
     },
 
-    startEditing(blog) { this.editingBlog = { ...blog } },
-    cancelEditing() { this.editingBlog = null },
+    // startEditing(blog) { this.editingBlog = { ...blog } },
+    // cancelEditing() { this.editingBlog = null },
 
     // Update blog
     // async updateBlog(apiBase, id, title, content) {

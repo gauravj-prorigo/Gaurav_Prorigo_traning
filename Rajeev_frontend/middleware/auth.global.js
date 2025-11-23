@@ -12,7 +12,7 @@ export default defineNuxtRouteMiddleware((to) => {
     try { auth.initFromStorage?.() } catch (e) { console.error('initFromStorage error', e) }
     if (!auth?.isAuthenticated && !isPublicRoute) {
       // Redirect to login with return URL
-      return navigateTo(`/?next=${encodeURIComponent(to.fullPath)}`)
+      return navigateTo('/')
     }
   } catch (err) {
 

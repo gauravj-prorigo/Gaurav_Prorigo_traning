@@ -78,15 +78,6 @@
       </div>
     </div>
 
-    <!-- Main Blog List -->
-    <!-- <div class="blog-list-section" ref="blogListSection">
-      <div class="section-header">
-        <h2 class="section-title">All Blog Posts</h2>
-        <p class="section-subtitle">Explore our complete collection of stories and articles</p>
-      </div>
-      <BlogList />
-    </div> -->
-
     <!-- Community Info -->
     <div class="community-section">
       <div class="community-content">
@@ -117,17 +108,15 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '#imports'
-import BlogList from './BlogList.vue'
 
 const auth = useAuthStore()
 const API_BASE = 'http://127.0.0.1:8000'
-const blogListSection = ref(null)
 
 const blogs = ref([])
 const loading = ref(false)
 
 // Mock data for demonstration
-const totalBlogs = ref(156)
+const totalBlogs = ref('')
 const activeWriters = ref(342)
 const communityMembers = ref(1284)
 
@@ -155,9 +144,7 @@ async function fetchBlogs() {
 }
 
 function scrollToBlogs() {
-  if (blogListSection.value) {
-    blogListSection.value.scrollIntoView({ behavior: 'smooth' })
-  }
+ console.log('Scroll to blog list section')
 }
 
 function viewBlog(blog) {
@@ -176,15 +163,14 @@ function showCategories() {
   console.log('Show categories')
 }
 
-function getExcerpt(content, length = 120) {
-  if (!content) return 'No content available'
-  return content.length > length ? content.substring(0, length) + '...' : content
-}
+// function getExcerpt(content, length = 120) {
+//   if (!content) return 'No content available'
+//   return content.length > length ? content.substring(0, length) + '...' : content
+// }
 
 function formatDate(dateString) {
   if (!dateString) return 'Recently'
-  const options = { year: 'numeric', month: 'short', day: 'numeric' }
-  return new Date(dateString).toLocaleDateString(undefined, options)
+  return new Date(dateString).toLocaleDateString
 }
 </script>
 
